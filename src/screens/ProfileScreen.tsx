@@ -690,7 +690,7 @@ const ProfileScreen: React.FC = () => {
           </View>
 
           <Text style={styles.bio}>
-            Lover of coffee · Student at NWSSU · Building small things that matter one line at a time.
+            Lover of coffee · Student at Nwssu
           </Text>
 
           <Tags />
