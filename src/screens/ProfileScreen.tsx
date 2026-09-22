@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
-  Animated,
-  Easing,
+  Modal,
+  TextInput,
 } from 'react-native';
+import profileImage from '../assets/profile.jpg';
 
 const { width } = Dimensions.get('window');
 
@@ -69,16 +70,13 @@ const PALETTE = {
   danger50: '#FEF2F2',
   success500: '#16A34A',
   success100: '#DCFCE7',
-  skeletonBase: '#EEF0F3',
-  skeletonHigh: '#F7F8FA',
   overlay60: 'rgba(17, 24, 39, 0.60)',
   overlay40: 'rgba(17, 24, 39, 0.40)',
   overlay20: 'rgba(255, 255, 255, 0.18)',
   white: '#FFFFFF',
 } as const;
 
-const USER_AVATAR_URI =
-  'https://coresg-normal.trae.ai/api/ide/v1/text_to_image?prompt=portrait%20of%20a%20young%20filipino%20teenage%20boy%20with%20short%20black%20hair%20with%20braces%20smiling%20wearing%20a%20light%20pink%20shirt%20holding%20a%20black%20camera%20outdoor%20palm%20trees%20sunny%20day%20green%20grass%20clear%20blue%20sky%20natural%20lighting&image_size=square_hd';
+const USER_AVATAR_URI = profileImage;
 
 const PICSUM_BASE = 'https://picsum.photos/seed';
 const P = (seed: string, w: number, h: number) => `${PICSUM_BASE}/${seed}/${w}/${h}`;
@@ -131,10 +129,9 @@ const mockVideos: Post[] = [
 const settings: SettingItem[] = [
   { id: 's1', glyph: 'bell', label: 'Notifications', value: 'Enabled', hasArrow: true },
   { id: 's2', glyph: 'shield', label: 'Privacy', value: 'Friends only', hasArrow: true },
-  { id: 's3', glyph: 'card', label: 'Payment Methods', value: '•••• 4242', hasArrow: true },
-  { id: 's4', glyph: 'palette', label: 'Appearance', value: 'Light', hasArrow: true },
-  { id: 's5', glyph: 'info', label: 'About', value: 'v2.4.0', hasArrow: true },
-  { id: 's6', glyph: 'logout', label: 'Log Out', danger: true },
+  { id: 's3', glyph: 'palette', label: 'Appearance', value: 'Light', hasArrow: true },
+  { id: 's4', glyph: 'info', label: 'About', value: 'v2.4.0', hasArrow: true },
+  { id: 's5', glyph: 'logout', label: 'Log Out', danger: true },
 ];
 
 const tabMeta: Record<TabKey, { glyph: string; label: string }> = {
@@ -143,346 +140,18 @@ const tabMeta: Record<TabKey, { glyph: string; label: string }> = {
   videos: { glyph: 'play', label: 'Videos' },
 };
 
-const Glyph: React.FC<{ name: string; size?: number; color?: string }> = ({
-  name,
-  size = 16,
-  color = PALETTE.textTertiary,
-}) => {
-  const commonSvgProps = {
-    width: size,
-    height: size,
-    viewBox: '0 0 24 24',
-    fill: 'none',
-    stroke: color,
-    strokeWidth: 2,
-    strokeLinecap: 'round' as const,
-    strokeLinejoin: 'round' as const,
-  };
-  switch (name) {
-    case 'bell':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'shield':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'card':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'palette':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="1.5"/><circle cx="17.5" cy="10.5" r="1.5"/><circle cx="8.5" cy="7.5" r="1.5"/><circle cx="6.5" cy="12.5" r="1.5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c1 0 1.5-1 1.5-2 0-.5 0-1-.5-1.5-.5-.5-.5-1 0-2 .5-.5 1-1 1.5-1h2c3 0 5-2.5 5-5.5C21.5 6.5 17.5 2 12 2z"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'info':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'logout':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'grid':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'image':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'play':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="6 4 20 12 6 20 6 4"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'settings':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'share':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'pin':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'calendar':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'heart':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" fill="${color}"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'chevronRight':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'playFill':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="7 4 21 12 7 20 7 4" fill="${color}"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'userPlus':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'userCheck':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>`
-              ),
-          }}
-        />
-      );
-    case 'message':
-      return (
-        <Image
-          style={{ width: size, height: size, tintColor: color }}
-          source={{
-            uri:
-              'data:image/svg+xml;utf8,' +
-              encodeURIComponent(
-                `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`
-              ),
-          }}
-        />
-      );
-    default:
-      return null;
-  }
-};
-
-const Skeleton: React.FC<{
-  width?: number | string;
-  height?: number | string;
-  borderRadius?: number;
-}> = ({ width = '100%', height = 16, borderRadius = TOKENS.radiusSm }) => {
-  const [xAnim] = useState(() => new Animated.Value(-100));
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.timing(xAnim, {
-        toValue: 100,
-        duration: 1400,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      })
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [xAnim]);
-
-  return (
-    <View
-      style={[
-        styles.skeletonWrap,
-        { width, height, borderRadius, overflow: 'hidden' },
-      ]}
-    >
-      <View style={StyleSheet.absoluteFill} />
-      <Animated.View
-        style={[
-          styles.skeletonShine,
-          {
-            transform: [{ translateX: xAnim }],
-            width: '80%',
-            height: '100%',
-          },
-        ]}
-      />
-    </View>
-  );
-};
-
-const AvatarWithFallback: React.FC<{ size: number; uri: string }> = ({ size, uri }) => {
-  const [loading, setLoading] = useState(true);
+const AvatarWithFallback: React.FC<{ size: number; uri: any }> = ({ size, uri }) => {
   const [errored, setErrored] = useState(false);
 
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, overflow: 'hidden' }}>
-      {loading && (
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: size,
-            height: size,
-            zIndex: 2,
-          }}
-        >
-          <Skeleton width={size} height={size} borderRadius={size / 2} />
-        </View>
-      )}
       {!errored ? (
         <Image
-          source={{ uri }}
+          source={typeof uri === 'string' ? { uri } : uri}
           style={{ width: size, height: size }}
           resizeMode="cover"
-          onLoadStart={() => setLoading(true)}
-          onLoad={() => setLoading(false)}
           onError={() => {
             setErrored(true);
-            setLoading(false);
           }}
         />
       ) : (
@@ -495,7 +164,7 @@ const AvatarWithFallback: React.FC<{ size: number; uri: string }> = ({ size, uri
             justifyContent: 'center',
           }}
         >
-          <Glyph name="userPlus" size={size * 0.35} color={PALETTE.textTertiary} />
+          <Text style={{ fontSize: size * 0.4 }}>👤</Text>
         </View>
       )}
     </View>
@@ -503,7 +172,6 @@ const AvatarWithFallback: React.FC<{ size: number; uri: string }> = ({ size, uri
 };
 
 const PostCard: React.FC<{ item: Post; size: number; tab: TabKey }> = ({ item, size, tab }) => {
-  const [loading, setLoading] = useState(true);
   const [errored, setErrored] = useState(false);
 
   return (
@@ -517,26 +185,18 @@ const PostCard: React.FC<{ item: Post; size: number; tab: TabKey }> = ({ item, s
           { backgroundColor: PALETTE.bgMuted, overflow: 'hidden', width: size, height: size },
         ]}
       >
-        {loading && (
-          <View style={StyleSheet.absoluteFill}>
-            <Skeleton width={size} height={size} borderRadius={TOKENS.radiusMd} />
-          </View>
-        )}
         {!errored ? (
           <Image
             source={{ uri: item.imageUrl }}
             style={styles.postImage}
-            onLoadStart={() => setLoading(true)}
-            onLoad={() => setLoading(false)}
             onError={() => {
               setErrored(true);
-              setLoading(false);
             }}
             resizeMode="cover"
           />
         ) : (
           <View style={styles.postFallback}>
-            <Glyph name="image" size={size * 0.24} color={PALETTE.textQuaternary} />
+            <Text style={{ fontSize: size * 0.3 }}>🖼️</Text>
           </View>
         )}
 
@@ -557,12 +217,12 @@ const PostCard: React.FC<{ item: Post; size: number; tab: TabKey }> = ({ item, s
 
         {tab === 'videos' && (
           <View style={styles.playIcon}>
-            <Glyph name="playFill" size={20} color={PALETTE.white} />
+            <Text style={{ fontSize: 20, color: PALETTE.white }}>▶</Text>
           </View>
         )}
         <View style={styles.postOverlay}>
           <View style={styles.postOverlayRow}>
-            <Glyph name="heart" size={11} color={PALETTE.white} />
+            <Text style={{ fontSize: 11, color: PALETTE.white }}>❤️</Text>
             <Text style={[styles.postOverlayText, { marginLeft: 4 }]}>
               {item.likes.toLocaleString()}
             </Text>
@@ -576,6 +236,10 @@ const PostCard: React.FC<{ item: Post; size: number; tab: TabKey }> = ({ item, s
 const ProfileScreen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabKey>('posts');
   const [isFollowing, setIsFollowing] = useState(false);
+  const [showMessageModal, setShowMessageModal] = useState(false);
+  const [showSettingsScreen, setShowSettingsScreen] = useState(false);
+  const [activeSettingId, setActiveSettingId] = useState<string>('s1');
+  const [messageText, setMessageText] = useState('');
 
   const getTabData = (): Post[] => {
     switch (activeTab) {
@@ -636,6 +300,25 @@ const ProfileScreen: React.FC = () => {
 
   return (
     <View style={styles.screenWrap}>
+      {/* Navigation Bar */}
+      <View style={styles.navBar}>
+        <TouchableOpacity
+          style={styles.navActionBtn}
+          onPress={() => console.log('Back pressed')}
+        >
+          <Text style={styles.navActionIcon}>←</Text>
+          <Text style={styles.navActionLabel}>Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.navTitle}>Profile</Text>
+        <TouchableOpacity
+          style={styles.navActionBtn}
+          onPress={() => setShowSettingsScreen(true)}
+        >
+          <Text style={styles.navActionIcon}>⚙️</Text>
+          <Text style={styles.navActionLabel}>Settings</Text>
+        </TouchableOpacity>
+      </View>
+
       <ScrollView
         style={styles.container}
         contentContainerStyle={styles.scrollContent}
@@ -644,24 +327,6 @@ const ProfileScreen: React.FC = () => {
         <View style={styles.coverContainer}>
           <View style={styles.coverBg} />
           <View style={styles.coverTexture} />
-          <View style={styles.coverActions}>
-            <TouchableOpacity
-              style={styles.coverActionBtn}
-              activeOpacity={0.7}
-              accessibilityLabel="Open profile settings"
-            >
-              <Glyph name="settings" size={18} color={PALETTE.white} />
-              <Text style={[styles.coverActionLabel, { marginLeft: 6 }]}>Settings</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.coverActionBtn}
-              activeOpacity={0.7}
-              accessibilityLabel="Share profile"
-            >
-              <Glyph name="share" size={18} color={PALETTE.white} />
-              <Text style={[styles.coverActionLabel, { marginLeft: 6 }]}>Share</Text>
-            </TouchableOpacity>
-          </View>
         </View>
 
         <View style={styles.profileHeader}>
@@ -677,14 +342,14 @@ const ProfileScreen: React.FC = () => {
 
           <View style={styles.locationRow}>
             <View style={styles.locationItem}>
-              <Glyph name="pin" size={14} color={PALETTE.textTertiary} />
+              <Text style={{ fontSize: 14, color: PALETTE.textTertiary }}>📍</Text>
               <Text style={[styles.locationText, { marginLeft: 6 }]}>
                 Philippines · Calbayog City, Samar
               </Text>
             </View>
             <View style={styles.locationDivider} />
             <View style={styles.locationItem}>
-              <Glyph name="calendar" size={14} color={PALETTE.textTertiary} />
+              <Text style={{ fontSize: 14, color: PALETTE.textTertiary }}>📅</Text>
               <Text style={[styles.locationText, { marginLeft: 6 }]}>Joined Sep 2026</Text>
             </View>
           </View>
@@ -723,11 +388,9 @@ const ProfileScreen: React.FC = () => {
             accessibilityRole="button"
             accessibilityLabel={isFollowing ? 'Unfollow user' : 'Follow user'}
           >
-            <Glyph
-              name={isFollowing ? 'userCheck' : 'userPlus'}
-              size={16}
-              color={isFollowing ? PALETTE.brand600 : PALETTE.white}
-            />
+            <Text style={{ fontSize: 16, color: isFollowing ? PALETTE.brand600 : PALETTE.white }}>
+              {isFollowing ? '' : ''}
+            </Text>
             <Text
               style={[
                 styles.actionBtnText,
@@ -741,10 +404,11 @@ const ProfileScreen: React.FC = () => {
           <TouchableOpacity
             style={[styles.actionBtn, styles.actionBtnSecondary]}
             activeOpacity={0.8}
+            onPress={() => setShowMessageModal(true)}
             accessibilityRole="button"
             accessibilityLabel="Send a direct message"
           >
-            <Glyph name="message" size={16} color={PALETTE.textPrimary} />
+            <Text style={{ fontSize: 16, color: PALETTE.textPrimary }}></Text>
             <Text
               style={[styles.actionBtnText, styles.actionBtnTextSecondary, { marginLeft: 6 }]}
             >
@@ -766,11 +430,9 @@ const ProfileScreen: React.FC = () => {
                 accessibilityRole="tab"
                 accessibilityState={{ selected: active }}
               >
-                <Glyph
-                  name={meta.glyph}
-                  size={15}
-                  color={active ? PALETTE.brand600 : PALETTE.textTertiary}
-                />
+                <Text style={{ fontSize: 16, color: active ? PALETTE.brand600 : PALETTE.textTertiary }}>
+                  {meta.glyph === 'grid' ? '📊' : meta.glyph === 'image' ? '📷' : meta.glyph === 'play' ? '▶️' : '•'}
+                </Text>
                 <Text
                   style={[
                     styles.tabText,
@@ -788,68 +450,257 @@ const ProfileScreen: React.FC = () => {
 
         <View style={styles.gridSection}>{renderPostGrid()}</View>
 
-        <View style={styles.settingsSection}>
-          <Text style={styles.sectionTitle}>Account settings</Text>
-          {settings.map((item, idx) => (
-            <TouchableOpacity
-              key={item.id}
-              style={[
-                styles.settingRow,
-                idx === settings.length - 1 ? styles.settingRowLast : styles.settingRowBorder,
-              ]}
-              activeOpacity={0.6}
-              accessibilityRole="button"
-              accessibilityLabel={`${item.label}${item.value ? ', ' + item.value : ''}`}
-            >
-              <View
-                style={[
-                  styles.settingIconWrap,
-                  item.danger && styles.settingIconWrapDanger,
-                ]}
-              >
-                <Glyph
-                  name={item.glyph}
-                  size={16}
-                  color={item.danger ? PALETTE.danger500 : PALETTE.brand600}
-                />
-              </View>
-              <Text
-                style={[
-                  styles.settingLabel,
-                  item.danger && styles.settingLabelDanger,
-                ]}
-              >
-                {item.label}
-              </Text>
-              <View style={styles.settingRight}>
-                {item.value ? (
-                  <Text
-                    style={[styles.settingValue, { marginRight: TOKENS.spacingSm }]}
-                    numberOfLines={1}
-                  >
-                    {item.value}
-                  </Text>
-                ) : null}
-                {item.hasArrow ? (
-                  <Glyph name="chevronRight" size={16} color={PALETTE.textQuaternary} />
-                ) : null}
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
-
         <Text style={styles.footer}>© 2026 John Mhyckel · v2.4.0</Text>
       </ScrollView>
+
+      {/* Message Modal */}
+      <Modal
+        visible={showMessageModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowMessageModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Send Message</Text>
+              <TouchableOpacity onPress={() => setShowMessageModal(false)}>
+                <Text style={styles.modalClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.messageInputContainer}>
+              <Text style={styles.messageLabel}>To: John Mhyckel</Text>
+              <TextInput
+                style={styles.messageInput}
+                placeholder="Type your message..."
+                placeholderTextColor={PALETTE.textTertiary}
+                multiline={true}
+                numberOfLines={4}
+                value={messageText}
+                onChangeText={setMessageText}
+              />
+            </View>
+            <TouchableOpacity
+              style={[
+                styles.modalSendBtn,
+                !messageText.trim() && styles.modalSendBtnDisabled,
+              ]}
+              onPress={() => {
+                if (messageText.trim()) {
+                  console.log('Message sent:', messageText);
+                  setMessageText('');
+                  setShowMessageModal(false);
+                }
+              }}
+              disabled={!messageText.trim()}
+            >
+              <Text style={[
+                styles.modalSendBtnText,
+                !messageText.trim() && styles.modalSendBtnTextDisabled,
+              ]}>
+                Send Message
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Settings Full-Screen */}
+      <Modal
+        visible={showSettingsScreen}
+        animationType="slide"
+        transparent={false}
+        onRequestClose={() => setShowSettingsScreen(false)}
+      >
+        <View style={styles.settingsScreen}>
+          {/* Settings Top Bar */}
+          <View style={styles.settingsTopBar}>
+            <TouchableOpacity
+              style={styles.settingsBackBtn}
+              onPress={() => setShowSettingsScreen(false)}
+            >
+              <Text style={styles.settingsBackIcon}>←</Text>
+              <Text style={styles.settingsBackLabel}>Back</Text>
+            </TouchableOpacity>
+            <Text style={styles.settingsTopTitle}>Account Settings</Text>
+            <View style={{ width: 72 }} />
+          </View>
+
+          {/* Settings Body: sidebar + detail */}
+          <View style={styles.settingsBody}>
+            {/* Left Sidebar */}
+            <View style={styles.settingsSidebar}>
+              <Text style={styles.settingsSidebarHeading}>Settings</Text>
+              {settings.map((item) => {
+                const isActive = activeSettingId === item.id;
+                return (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={[
+                      styles.sidebarItem,
+                      isActive && styles.sidebarItemActive,
+                      item.danger && styles.sidebarItemDanger,
+                    ]}
+                    onPress={() => {
+                      if (item.label === 'Log Out') {
+                        setShowSettingsScreen(false);
+                        return;
+                      }
+                      setActiveSettingId(item.id);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <View
+                      style={[
+                        styles.sidebarIconWrap,
+                        isActive && styles.sidebarIconWrapActive,
+                        item.danger && styles.sidebarIconWrapDanger,
+                      ]}
+                    >
+                      <Text style={{ fontSize: 16 }}>
+                        {item.glyph === 'bell' ? '🔔'
+                          : item.glyph === 'shield' ? '🔒'
+                          : item.glyph === 'palette' ? '🎨'
+                          : item.glyph === 'info' ? 'ℹ️'
+                          : '🚪'}
+                      </Text>
+                    </View>
+                    <Text
+                      style={[
+                        styles.sidebarLabel,
+                        isActive && styles.sidebarLabelActive,
+                        item.danger && styles.sidebarLabelDanger,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {item.label}
+                    </Text>
+                    {isActive && !item.danger && (
+                      <View style={styles.sidebarActiveBar} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {/* Right Detail Panel */}
+            <View style={styles.settingsDetail}>
+              {(() => {
+                const active = settings.find((s) => s.id === activeSettingId);
+                if (!active) return null;
+
+                const detailRows: { label: string; value: string }[] =
+                  active.label === 'Notifications'
+                    ? [
+                        { label: 'Push Notifications', value: 'Enabled' },
+                        { label: 'Email Alerts', value: 'Disabled' },
+                        { label: 'In-App Sound', value: 'Enabled' },
+                      ]
+                    : active.label === 'Privacy'
+                    ? [
+                        { label: 'Profile Visibility', value: 'Friends only' },
+                        { label: 'Message Requests', value: 'Everyone' },
+                        { label: 'Activity Status', value: 'Visible' },
+                      ]
+                    : active.label === 'Appearance'
+                    ? [
+                        { label: 'Theme', value: 'Light' },
+                        { label: 'Font Size', value: 'Medium' },
+                        { label: 'Accent Color', value: 'Indigo' },
+                      ]
+                    : active.label === 'About'
+                    ? [
+                        { label: 'Version', value: 'v2.4.0' },
+                        { label: 'Build', value: '20260922' },
+                        { label: 'Developer', value: 'John Mhyckel' },
+                      ]
+                    : [];
+
+                return (
+                  <ScrollView showsVerticalScrollIndicator={false}>
+                    <View style={styles.detailHeader}>
+                      <View style={styles.detailIconWrap}>
+                        <Text style={{ fontSize: 28 }}>
+                          {active.glyph === 'bell' ? '🔔'
+                            : active.glyph === 'shield' ? '🔒'
+                            : active.glyph === 'palette' ? '🎨'
+                            : active.glyph === 'info' ? 'ℹ️'
+                            : '🚪'}
+                        </Text>
+                      </View>
+                      <Text style={styles.detailTitle}>{active.label}</Text>
+                      {active.value && (
+                        <View style={styles.detailBadge}>
+                          <Text style={styles.detailBadgeText}>{active.value}</Text>
+                        </View>
+                      )}
+                    </View>
+
+                    <View style={styles.detailCard}>
+                      {detailRows.map((row, i) => (
+                        <View
+                          key={row.label}
+                          style={[
+                            styles.detailRow,
+                            i < detailRows.length - 1 && styles.detailRowBorder,
+                          ]}
+                        >
+                          <Text style={styles.detailRowLabel}>{row.label}</Text>
+                          <View style={styles.detailRowRight}>
+                            <Text style={styles.detailRowValue}>{row.value}</Text>
+                            <Text style={styles.detailRowChevron}>›</Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </ScrollView>
+                );
+              })()}
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   screenWrap: {
     flex: 1,
     width: '100%',
     alignSelf: 'stretch',
     backgroundColor: PALETTE.bgCanvas,
+  },
+  navBar: {
+    height: 56,
+    backgroundColor: PALETTE.bgSurface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: TOKENS.spacingLg,
+    borderBottomWidth: 1,
+    borderBottomColor: PALETTE.strokeSoft,
+    paddingTop: Dimensions.get('window').height > 800 ? 44 : 0,
+  },
+  navActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: TOKENS.spacingXs,
+    paddingHorizontal: TOKENS.spacingSm,
+    borderRadius: TOKENS.radiusSm,
+  },
+  navActionIcon: {
+    fontSize: 18,
+    marginRight: 4,
+  },
+  navActionLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: PALETTE.textSecondary,
+  },
+  navTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: PALETTE.textPrimary,
   },
   container: {
     flex: 1,
@@ -883,27 +734,6 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     opacity: 0.6,
-  },
-  coverActions: {
-    position: 'absolute',
-    top: TOKENS.spacingLg,
-    left: TOKENS.spacingLg,
-    right: TOKENS.spacingLg,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  coverActionBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: TOKENS.radiusPill,
-    backgroundColor: PALETTE.overlay20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  coverActionLabel: {
-    color: PALETTE.white,
-    fontSize: 12,
-    fontWeight: '600',
   },
   profileHeader: {
     alignItems: 'center',
@@ -1212,86 +1042,294 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.18)',
   },
-  settingsSection: {
-    marginHorizontal: TOKENS.contentInset,
-    backgroundColor: PALETTE.bgSurface,
-    borderRadius: TOKENS.radiusXl,
-    paddingHorizontal: TOKENS.spacingLg,
-    paddingTop: TOKENS.spacingLg,
-    paddingBottom: 6,
-    marginBottom: TOKENS.spacing2xl,
-    borderWidth: 1,
-    borderColor: PALETTE.strokeSoft,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '800',
-    color: PALETTE.textPrimary,
-    marginBottom: TOKENS.spacingSm,
-    paddingHorizontal: TOKENS.spacingSm,
-    letterSpacing: 0.2,
-  },
-  settingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: TOKENS.spacingSm,
-  },
-  settingRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: PALETTE.strokeSoft,
-  },
-  settingRowLast: {
-    paddingBottom: TOKENS.spacingLg,
-  },
-  settingIconWrap: {
-    width: 34,
-    height: 34,
-    borderRadius: TOKENS.radiusMd,
-    backgroundColor: PALETTE.brand50,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: TOKENS.spacingMd,
-  },
-  settingIconWrapDanger: {
-    backgroundColor: PALETTE.danger50,
-  },
-  settingLabel: {
-    flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
-    color: PALETTE.textPrimary,
-  },
-  settingLabelDanger: {
-    color: PALETTE.danger500,
-  },
-  settingRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  settingValue: {
-    fontSize: 13,
-    color: PALETTE.textTertiary,
-    fontWeight: '500',
-    maxWidth: 120,
-  },
-  skeletonWrap: {
-    backgroundColor: PALETTE.skeletonBase,
-    position: 'relative',
-  },
-  skeletonShine: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    backgroundColor: PALETTE.skeletonHigh,
-    opacity: 0.8,
-  },
+
+
   footer: {
     textAlign: 'center',
     fontSize: 12,
     color: PALETTE.textQuaternary,
     fontWeight: '500',
     paddingHorizontal: TOKENS.contentInset,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: PALETTE.overlay60,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: TOKENS.spacingLg,
+  },
+  modalContent: {
+    backgroundColor: PALETTE.bgSurface,
+    borderRadius: TOKENS.radiusXl,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: TOKENS.spacingLg,
+    borderBottomWidth: 1,
+    borderBottomColor: PALETTE.strokeSoft,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: PALETTE.textPrimary,
+  },
+  modalClose: {
+    fontSize: 24,
+    color: PALETTE.textTertiary,
+    width: 32,
+    height: 32,
+    textAlign: 'center',
+    lineHeight: 32,
+  },
+  messageInputContainer: {
+    padding: TOKENS.spacingLg,
+  },
+  messageLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: PALETTE.textSecondary,
+    marginBottom: TOKENS.spacingSm,
+  },
+  messageInput: {
+    backgroundColor: PALETTE.bgSubtle,
+    borderRadius: TOKENS.radiusMd,
+    padding: TOKENS.spacingMd,
+    minHeight: 120,
+    borderWidth: 1,
+    borderColor: PALETTE.strokeSoft,
+    fontSize: 14,
+    color: PALETTE.textPrimary,
+    textAlignVertical: 'top',
+  },
+  modalSendBtn: {
+    backgroundColor: PALETTE.brand600,
+    margin: TOKENS.spacingLg,
+    paddingVertical: TOKENS.spacingMd,
+    borderRadius: TOKENS.radiusLg,
+    alignItems: 'center',
+  },
+  modalSendBtnDisabled: {
+    backgroundColor: PALETTE.stroke,
+  },
+  modalSendBtnText: {
+    color: PALETTE.white,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  modalSendBtnTextDisabled: {
+    color: PALETTE.textTertiary,
+  },
+
+  // ── Full-screen Settings ──────────────────────────────────────────────
+  settingsScreen: {
+    flex: 1,
+    backgroundColor: PALETTE.bgCanvas,
+  },
+  settingsTopBar: {
+    height: 56,
+    backgroundColor: PALETTE.bgSurface,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: TOKENS.spacingLg,
+    borderBottomWidth: 1,
+    borderBottomColor: PALETTE.strokeSoft,
+    paddingTop: Dimensions.get('window').height > 800 ? 44 : 0,
+  },
+  settingsBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: TOKENS.spacingXs,
+    paddingHorizontal: TOKENS.spacingSm,
+    borderRadius: TOKENS.radiusSm,
+    minWidth: 72,
+  },
+  settingsBackIcon: {
+    fontSize: 18,
+    marginRight: 4,
+    color: PALETTE.brand600,
+  },
+  settingsBackLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: PALETTE.brand600,
+  },
+  settingsTopTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: PALETTE.textPrimary,
+  },
+  settingsBody: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  // Left sidebar
+  settingsSidebar: {
+    width: 200,
+    backgroundColor: PALETTE.bgSurface,
+    borderRightWidth: 1,
+    borderRightColor: PALETTE.strokeSoft,
+    paddingTop: TOKENS.spacingLg,
+    paddingBottom: TOKENS.spacingXl,
+  },
+  settingsSidebarHeading: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: PALETTE.textQuaternary,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    paddingHorizontal: TOKENS.spacingLg,
+    marginBottom: TOKENS.spacingMd,
+  },
+  sidebarItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: TOKENS.spacingLg,
+    marginHorizontal: TOKENS.spacingSm,
+    borderRadius: TOKENS.radiusMd,
+    marginBottom: 2,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  sidebarItemActive: {
+    backgroundColor: PALETTE.brand50,
+  },
+  sidebarItemDanger: {
+    marginTop: TOKENS.spacingMd,
+  },
+  sidebarIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: TOKENS.radiusSm,
+    backgroundColor: PALETTE.bgSubtle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: TOKENS.spacingMd,
+  },
+  sidebarIconWrapActive: {
+    backgroundColor: PALETTE.brand100,
+  },
+  sidebarIconWrapDanger: {
+    backgroundColor: PALETTE.danger50,
+  },
+  sidebarLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: PALETTE.textSecondary,
+    flex: 1,
+  },
+  sidebarLabelActive: {
+    color: PALETTE.brand600,
+  },
+  sidebarLabelDanger: {
+    color: PALETTE.danger500,
+  },
+  sidebarActiveBar: {
+    position: 'absolute',
+    left: 0,
+    top: 8,
+    bottom: 8,
+    width: 3,
+    borderRadius: 2,
+    backgroundColor: PALETTE.brand600,
+  },
+  // Right detail panel
+  settingsDetail: {
+    flex: 1,
+    backgroundColor: PALETTE.bgCanvas,
+    paddingHorizontal: TOKENS.spacingXl,
+    paddingTop: TOKENS.spacingXl,
+  },
+  detailHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: TOKENS.spacingXl,
+  },
+  detailIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: TOKENS.radiusMd,
+    backgroundColor: PALETTE.bgSurface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: TOKENS.spacingMd,
+    borderWidth: 1,
+    borderColor: PALETTE.strokeSoft,
+    shadowColor: '#111827',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  detailTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: PALETTE.textPrimary,
+    flex: 1,
+    letterSpacing: -0.2,
+  },
+  detailBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: TOKENS.radiusPill,
+    backgroundColor: PALETTE.brand50,
+    borderWidth: 1,
+    borderColor: PALETTE.brand100,
+  },
+  detailBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: PALETTE.brand600,
+  },
+  detailCard: {
+    backgroundColor: PALETTE.bgSurface,
+    borderRadius: TOKENS.radiusLg,
+    borderWidth: 1,
+    borderColor: PALETTE.strokeSoft,
+    overflow: 'hidden',
+    shadowColor: '#111827',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 1,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: TOKENS.spacingLg,
+    paddingHorizontal: TOKENS.spacingLg,
+  },
+  detailRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: PALETTE.strokeSoft,
+  },
+  detailRowLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: PALETTE.textPrimary,
+  },
+  detailRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  detailRowValue: {
+    fontSize: 13,
+    color: PALETTE.textTertiary,
+    fontWeight: '500',
+    marginRight: TOKENS.spacingSm,
+  },
+  detailRowChevron: {
+    fontSize: 20,
+    color: PALETTE.textQuaternary,
+    lineHeight: 22,
   },
 });
 
