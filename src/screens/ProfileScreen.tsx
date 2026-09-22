@@ -350,7 +350,7 @@ const ProfileScreen: React.FC = () => {
             <View style={styles.locationDivider} />
             <View style={styles.locationItem}>
               <Text style={{ fontSize: 14, color: PALETTE.textTertiary }}>📅</Text>
-              <Text style={[styles.locationText, { marginLeft: 6 }]}>Joined Sep 2026</Text>
+              <Text style={[styles.locationText, { marginLeft: 6 }]}>Joined September 2026</Text>
             </View>
           </View>
 
