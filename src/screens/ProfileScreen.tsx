@@ -479,7 +479,7 @@ const ProfileScreen: React.FC = () => {
         {/* Grid */}
         <View style={S.gridWrap}>{renderGrid()}</View>
 
-        <Text style={S.footer}>© 2026 John Mhyckel · v2.4.0</Text>
+        <Text style={S.footer}>© 2026 John Mhyckel · v1.1.1</Text>
 
       </ScrollView>
 
